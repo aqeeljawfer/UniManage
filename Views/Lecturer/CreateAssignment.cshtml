@@ -1,0 +1,56 @@
+@model AssignmentVM
+@{ ViewData["Title"] = "Create Assignment"; }
+<div class="row justify-content-center"><div class="col-md-7">
+<div class="card">
+    <div class="card-header fw-bold text-white" style="background:#048A81"><i class="bi bi-plus-circle me-2"></i>Create Assignment</div>
+    <div class="card-body p-4">
+        <form asp-action="CreateAssignment" method="post" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Course</label>
+                <select asp-for="CourseId" class="form-select" asp-items="@(new SelectList(ViewBag.Courses as List<Course>, "CourseId","Title"))">
+                    <option value="">-- Select Course --</option>
+                </select>
+                <span asp-validation-for="CourseId" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Title" class="form-label fw-semibold"></label>
+                <input asp-for="Title" class="form-control" />
+                <span asp-validation-for="Title" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Description" class="form-label fw-semibold"></label>
+                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+            </div>
+            <div class="row">
+                <div class="col-md-8 mb-3">
+                    <label asp-for="Deadline" class="form-label fw-semibold"></label>
+                    <input asp-for="Deadline" type="datetime-local" class="form-control" value="@Model.Deadline.ToString("yyyy-MM-ddTHH:mm")" />
+                    <span asp-validation-for="Deadline" class="text-danger small"></span>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label asp-for="MaxScore" class="form-label fw-semibold">Max Score</label>
+                    <input asp-for="MaxScore" type="number" class="form-control" min="1" max="100" />
+                </div>
+            </div>
+
+            @* ── Reference document (optional) ── *@
+            <div class="mb-3">
+                <label class="form-label fw-semibold">
+                    <i class="bi bi-paperclip me-1"></i>Reference Document <span class="text-muted fw-normal">(optional)</span>
+                </label>
+                <input type="file" name="AttachmentFile" id="AttachmentFile"
+                       class="form-control"
+                       accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.txt,.png,.jpg,.jpeg" />
+                <span asp-validation-for="AttachmentFile" class="text-danger small"></span>
+                <div class="form-text">Max 20 MB &nbsp;&middot;&nbsp; pdf, doc, docx, ppt, pptx, zip, txt, png, jpg</div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-acc"><i class="bi bi-check-circle me-2"></i>Create</button>
+                <a asp-action="Assignments" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+</div></div>

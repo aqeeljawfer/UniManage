@@ -1,0 +1,40 @@
+@model List<Grade>
+@{ ViewData["Title"] = "My Grades"; }
+<h2 class="fw-bold mb-4"><i class="bi bi-award me-2" style="color:#048A81"></i>My Grades</h2>
+@if (!Model.Any()) {
+    <div class="alert alert-info">No grades recorded yet.</div>
+} else {
+    var avg = Model.Average(g => g.Score);
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3"><div class="card text-center p-3"><div class="fw-bold fs-2" style="color:#048A81">@Model.Count</div><div class="text-muted small">Total Graded</div></div></div>
+        <div class="col-6 col-md-3"><div class="card text-center p-3"><div class="fw-bold fs-2 text-primary">@avg.ToString("F1")</div><div class="text-muted small">Average Score</div></div></div>
+        <div class="col-6 col-md-3"><div class="card text-center p-3"><div class="fw-bold fs-2 text-success">@Model.Max(g => g.Score)</div><div class="text-muted small">Highest</div></div></div>
+        <div class="col-6 col-md-3"><div class="card text-center p-3"><div class="fw-bold fs-2 text-warning">@Model.Min(g => g.Score)</div><div class="text-muted small">Lowest</div></div></div>
+    </div>
+    <div class="card">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead><tr><th>Course</th><th>Assignment</th><th>Score</th><th>Grade</th><th>Feedback</th><th>Date</th></tr></thead>
+                <tbody>
+                    @foreach (var g in Model) {
+                        <tr>
+                            <td>@g.Submission?.Assignment?.Course?.Title</td>
+                            <td>@g.Submission?.Assignment?.Title</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <strong>@g.Score/100</strong>
+                                    <div class="progress flex-grow-1" style="height:6px;min-width:60px">
+                                        <div class="progress-bar bg-success" style="width:@g.Score%"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="badge badge-@g.LetterGrade">@g.LetterGrade</span></td>
+                            <td><small>@(string.IsNullOrEmpty(g.Feedback) ? "—" : g.Feedback)</small></td>
+                            <td><small>@g.GradedAt.ToString("dd MMM yyyy")</small></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

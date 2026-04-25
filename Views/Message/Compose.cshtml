@@ -1,0 +1,35 @@
+@model ComposeVM
+@{ ViewData["Title"] = "Compose Message"; }
+<div class="row justify-content-center"><div class="col-md-7">
+<div class="card">
+    <div class="card-header fw-bold text-white" style="background:#048A81"><i class="bi bi-pencil-square me-2"></i>Compose Message</div>
+    <div class="card-body p-4">
+        <form asp-action="Compose" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="ParentMessageId" />
+            <div class="mb-3">
+                <label asp-for="ReceiverId" class="form-label fw-semibold">To</label>
+                <select asp-for="ReceiverId" class="form-select" asp-items="@(new SelectList(Model.Recipients,"Id","FullName",Model.ReceiverId))">
+                    <option value="">-- Select recipient --</option>
+                </select>
+                <span asp-validation-for="ReceiverId" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Subject" class="form-label fw-semibold"></label>
+                <input asp-for="Subject" class="form-control" />
+                <span asp-validation-for="Subject" class="text-danger small"></span>
+            </div>
+            <div class="mb-4">
+                <label asp-for="Body" class="form-label fw-semibold">Message</label>
+                <textarea asp-for="Body" class="form-control" rows="6" placeholder="Write your message here..."></textarea>
+                <span asp-validation-for="Body" class="text-danger small"></span>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-acc"><i class="bi bi-send me-2"></i>Send</button>
+                <a asp-action="Inbox" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+</div></div>

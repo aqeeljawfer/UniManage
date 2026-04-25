@@ -1,0 +1,59 @@
+@{ ViewData["Title"] = "Reports"; }
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0"><i class="bi bi-bar-chart me-2" style="color:#048A81"></i>Reports &amp; Analytics</h2>
+    <div class="d-flex gap-2">
+        <a asp-action="ExportEnrollments" class="btn btn-outline-success"><i class="bi bi-file-earmark-excel me-2"></i>Export Enrollments</a>
+        <a asp-action="ExportGrades" class="btn btn-outline-primary"><i class="bi bi-file-earmark-excel me-2"></i>Export Grades</a>
+    </div>
+</div>
+<div class="card">
+    <div class="card-header fw-bold text-white" style="background:#2E4057">
+    <i class="bi bi-bar-chart me-2"></i>Course Popularity</div>
+    <div class="card-body">
+        <canvas id="chart" style="height:500px;"></canvas>
+    </div>
+</div>
+@section Scripts {
+    <script>
+
+var labels = @Html.Raw(ViewBag.Labels ?? "[]");
+var counts = @Html.Raw(ViewBag.Counts ?? "[]");
+
+new Chart(
+    document.getElementById('chart'),
+    {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Enrollments',
+                data: counts,
+                backgroundColor: 'rgba(4,138,129,0.7)',
+                borderRadius: 6,
+                barThickness: 40,  
+                maxBarThickness: 45        
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,   
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: {
+                    grid: { display: false }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    }
+);
+    </script>
+
+}

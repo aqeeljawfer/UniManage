@@ -1,0 +1,184 @@
+@model StudentDashVM
+@{ ViewData["Title"] = "My Dashboard"; }
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div><h2 class="fw-bold mb-0"><i class="bi bi-speedometer2 me-2" style="color:#048A81"></i>My Dashboard</h2>
+    <p class="text-muted mb-0">Welcome back, <strong>@Model.StudentName</strong></p></div>
+    <a asp-action="BrowseCourses" class="btn btn-acc"><i class="bi bi-search me-2"></i>Browse Courses</a>
+</div>
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3"><div class="card text-center p-3"><div class="fw-bold fs-1 text-primary">@Model.Enrollments.Count</div><div class="text-muted small">Enrolled Courses</div></div></div>
+    <div class="col-6 col-md-3"><div class="card text-center p-3"><div class="fw-bold fs-1 text-warning">@Model.UpcomingAssignments.Count</div><div class="text-muted small">Upcoming Deadlines</div></div></div>
+    <div class="col-6 col-md-3"><div class="card text-center p-3"><div class="fw-bold fs-1 text-success">@Model.RecentGrades.Count</div><div class="text-muted small">Grades Received</div></div></div>
+    <div class="col-6 col-md-3"><div class="card text-center p-3"><div class="fw-bold fs-1 text-danger">@Model.UnreadMessages</div><div class="text-muted small">Unread Messages</div></div></div>
+</div>
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header fw-bold text-white" style="background:#2E4057"><i class="bi bi-book me-2"></i>My Enrolled Courses</div>
+            <div class="card-body p-0">
+                @if (!Model.Enrollments.Any()) {
+                    <div class="p-4 text-center text-muted"><i class="bi bi-inbox fs-2 d-block mb-2"></i>No courses yet. <a asp-action="BrowseCourses">Browse courses</a></div>
+                } else {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var e in Model.Enrollments) {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div><div class="fw-semibold">@e.Course?.Title</div><small class="text-muted">@e.Course?.Credits credits</small></div>
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-sm btn-outline-info view-course-btn" 
+                                            data-title="@e.Course?.Title" 
+                                            data-credits="@e.Course?.Credits" 
+                                            data-desc="@e.Course?.Description"
+                                            data-lecturer="@(e.Course?.Lecturer?.FullName ?? "N/A")">
+                                        <i class="bi bi-info-circle"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger withdraw-btn" 
+                                            data-id="@e.EnrollmentId" 
+                                            data-title="@e.Course?.Title">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
+
+    @section Scripts {
+        <script>
+            // Course Details Logic
+            const courseModal = new bootstrap.Modal(document.getElementById('courseDetailModal'));
+            document.querySelectorAll('.view-course-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.getElementById('m-title').innerText = this.dataset.title;
+                    document.getElementById('m-credits').innerText = this.dataset.credits + ' Credits';
+                    document.getElementById('m-desc').innerText = this.dataset.desc;
+                    document.getElementById('m-lecturer').innerText = this.dataset.lecturer;
+                    courseModal.show();
+                });
+            });
+
+            // Withdrawal Logic
+            document.querySelectorAll('.withdraw-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const id = this.dataset.id;
+                    const title = this.dataset.title;
+
+                    Swal.fire({
+                        title: 'Confirm Withdrawal',
+                        html: `Are you sure you want to withdraw from <strong>${title}</strong>?<br><br><span class="text-danger small"><i class="bi bi-exclamation-triangle me-1"></i>This action will remove you from the course roster.</span>`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Yes, Withdraw',
+                        cancelButtonText: 'Keep Course',
+                        customClass: { popup: 'rounded-4' }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            const form = document.createElement('form');
+                            form.method = 'POST';
+                            form.action = '@Url.Action("Withdraw", "Student")';
+                            
+                            const antiForgery = document.createElement('input');
+                            antiForgery.type = 'hidden';
+                            antiForgery.name = '__RequestVerificationToken';
+                            antiForgery.value = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                            
+                            const idInput = document.createElement('input');
+                            idInput.type = 'hidden';
+                            idInput.name = 'enrollmentId';
+                            idInput.value = id;
+
+                            form.appendChild(antiForgery);
+                            form.appendChild(idInput);
+                            document.body.appendChild(form);
+                            form.submit();
+                        }
+                    });
+                });
+            });
+        </script>
+    }
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header fw-bold text-white" style="background:#048A81"><i class="bi bi-clock me-2"></i>Upcoming Deadlines</div>
+            <div class="card-body p-0">
+                @if (!Model.UpcomingAssignments.Any()) {
+                    <div class="p-4 text-center text-muted"><i class="bi bi-check-all fs-2 d-block mb-2"></i>No upcoming deadlines!</div>
+                } else {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var a in Model.UpcomingAssignments) {
+                            var days = (a.Deadline - DateTime.Now).Days;
+                            var bc = days <= 2 ? "bg-danger" : days <= 7 ? "bg-warning text-dark" : "bg-success";
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div><div class="fw-semibold">@a.Title</div><small class="text-muted">@a.Course?.Title</small></div>
+                                <span class="badge @bc">@(days == 0 ? "Today" : days + "d left")</span>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header fw-bold text-white" style="background:#3D5A80"><i class="bi bi-award me-2"></i>Recent Grades</div>
+            <div class="card-body p-0">
+                @if (!Model.RecentGrades.Any()) {
+                    <div class="p-4 text-center text-muted">No grades yet.</div>
+                } else {
+                    <table class="table table-hover mb-0">
+                        <thead><tr><th>Course</th><th>Assignment</th><th>Score</th><th>Grade</th><th>Feedback</th></tr></thead>
+                        <tbody>
+                            @foreach (var g in Model.RecentGrades) {
+                                <tr>
+                                    <td>@g.Submission?.Assignment?.Course?.Title</td>
+                                    <td>@g.Submission?.Assignment?.Title</td>
+                                    <td><strong>@g.Score/100</strong></td>
+                                    <td><span class="badge badge-@g.LetterGrade">@g.LetterGrade</span></td>
+                                    <td><small class="text-muted">@(string.IsNullOrEmpty(g.Feedback) ? "—" : g.Feedback)</small></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Course Details Modal -->
+<div class="modal fade" id="courseDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <h5 class="modal-title fw-bold">Course Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body px-4 pb-4">
+                <div class="text-center mb-4">
+                    <h3 class="fw-bold text-dark mb-1" id="m-title">Course Title</h3>
+                    <span class="badge bg-light text-dark border px-3 py-2 rounded-pill" id="m-credits">0 credits</span>
+                </div>
+
+                <div class="card bg-light border-0 rounded-4 mb-3">
+                    <div class="card-body">
+                        <label class="fw-bold small text-uppercase text-muted mb-2">Description</label>
+                        <p class="text-secondary mb-0 small" id="m-desc" style="white-space: pre-line;"></p>
+                    </div>
+                </div>
+
+                <div class="p-3 border rounded-4 bg-white shadow-sm mb-3">
+                    <label class="d-block small text-muted mb-1">Lecturer</label>
+                    <span class="fw-bold text-dark" id="m-lecturer">Name</span>
+                </div>
+                
+                <button type="button" class="btn btn-secondary w-100 py-2 rounded-3" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@Html.AntiForgeryToken()

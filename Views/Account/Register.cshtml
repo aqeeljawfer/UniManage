@@ -1,0 +1,47 @@
+@model RegisterVM
+@{ ViewData["Title"] = "Register"; }
+<div class="row justify-content-center mt-4">
+<div class="col-md-6">
+<div class="card p-4">
+    <div class="text-center mb-4">
+        <i class="bi bi-person-plus-fill" style="font-size:3rem;color:#048A81"></i>
+        <h3 class="mt-2 fw-bold">Create Account</h3>
+    </div>
+    <form asp-action="Register" method="post">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+        <div class="mb-3">
+            <label asp-for="FullName" class="form-label fw-semibold">Full Name</label>
+            <input asp-for="FullName" class="form-control" placeholder="Your full name" />
+            <span asp-validation-for="FullName" class="text-danger small"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Email" class="form-label fw-semibold">Email</label>
+            <input asp-for="Email" class="form-control" />
+            <span asp-validation-for="Email" class="text-danger small"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Password" class="form-label fw-semibold">Password</label>
+            <input asp-for="Password" class="form-control" />
+            <span asp-validation-for="Password" class="text-danger small"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="ConfirmPassword" class="form-label fw-semibold">Confirm Password</label>
+            <input asp-for="ConfirmPassword" class="form-control" />
+            <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+        </div>
+        <div class="mb-4">
+            <label asp-for="Role" class="form-label fw-semibold">Register As</label>
+            <select asp-for="Role" class="form-select">
+                <option value="Student">Student</option>
+                <option value="Lecturer">Lecturer</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-acc w-100 py-2">
+            <i class="bi bi-person-check me-2"></i>Create Account
+        </button>
+    </form>
+    <hr />
+    <p class="text-center mb-0">Already registered? <a asp-action="Login">Sign in</a></p>
+</div>
+</div>
+</div>

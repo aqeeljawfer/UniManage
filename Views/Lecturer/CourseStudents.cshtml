@@ -1,0 +1,27 @@
+@model List<Enrollment>
+@{ ViewData["Title"] = "Course Students"; var course = ViewBag.Course as Course; }
+<a asp-action="Dashboard" class="btn btn-sm btn-outline-secondary mb-3"><i class="bi bi-arrow-left me-1"></i>Back</a>
+<h2 class="fw-bold mb-1"><i class="bi bi-people me-2" style="color:#048A81"></i>Students — @course?.Title</h2>
+<p class="text-muted">@Model.Count enrolled</p>
+@if (!Model.Any()) { <div class="alert alert-info">No students enrolled.</div> }
+else {
+    <div class="card">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Enrolled</th><th>Action</th></tr></thead>
+                <tbody>
+                    @{ int i = 1; }
+                    @foreach (var e in Model) {
+                        <tr>
+                            <td>@(i++)</td>
+                            <td class="fw-semibold">@e.Student?.FullName</td>
+                            <td>@e.Student?.Email</td>
+                            <td><small>@e.EnrolledAt.ToString("dd MMM yyyy")</small></td>
+                            <td><a asp-controller="Message" asp-action="Compose" asp-route-receiverId="@e.StudentId" asp-route-subject="Re: @course?.Title" class="btn btn-sm btn-outline-primary"><i class="bi bi-envelope me-1"></i>Message</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

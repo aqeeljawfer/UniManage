@@ -1,0 +1,80 @@
+@model List<Assignment>
+    @{ ViewData["Title"] = "Assignments"; }
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0"><i class="bi bi-file-earmark-text me-2" style="color:#048A81"></i>Assignments</h2>
+        <a asp-action="CreateAssignment" class="btn btn-acc"><i class="bi bi-plus-circle me-2"></i>Create Assignment</a>
+    </div>
+    @if (!Model.Any()) { <div class="alert alert-info">No assignments yet.</div> }
+else {
+    @foreach (var a in Model) {
+        var graded = a.Submissions.Count(s => s.Grade != null);
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                <div>
+                    <h5 class="fw-bold mb-1">@a.Title</h5>
+                    <p class="text-muted small mb-1"><i class="bi bi-book me-1"></i>@a.Course?.Title</p>
+                    <small class="text-muted">
+                        <i class="bi bi-calendar me-1"></i>Deadline: @a.Deadline.ToString("dd MMM yyyy HH:mm")
+                        @if (a.IsOverdue) { <span class="badge bg-secondary ms-2">Closed</span> }
+                    </small>
+
+                    @* ── Attachment chip ── *@
+                    @if (!string.IsNullOrEmpty(a.AttachmentPath)) {
+                    <div class="mt-2">
+                        <a href="@a.AttachmentPath" target="_blank" download="@a.AttachmentFileName"
+                           class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-paperclip me-1"></i>@a.AttachmentFileName
+                        </a>
+                    </div>
+                        }
+                </div>
+                <div class="d-flex gap-2 align-items-center">
+                    <div class="text-center me-3"><div class="fw-bold text-primary fs-5">@a.Submissions.Count</div><small class="text-muted">Submissions</small></div>
+                    <div class="text-center me-3"><div class="fw-bold text-success fs-5">@graded</div><small class="text-muted">Graded</small></div>
+
+                    <div class="btn-group">
+                        <a asp-action="Submissions" asp-route-assignmentId="@a.AssignmentId" class="btn btn-sm btn-pri">
+                            <i class="bi bi-eye me-1"></i>View
+                        </a>
+                        <a asp-action="EditAssignment" asp-route-id="@a.AssignmentId" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-pencil me-1"></i>Edit
+                        </a>
+                        <form asp-action="DeleteAssignment" class="delete-form" asp-route-id="@a.AssignmentId" method="post"
+                               style="display:inline;">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    }
+}
+
+
+    <script>
+        document.querySelectorAll('.delete-form').forEach(form => {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "This will delete the assignment and all submissions.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Yes, delete it',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    </script>

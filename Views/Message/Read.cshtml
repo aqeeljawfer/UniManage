@@ -1,0 +1,25 @@
+@model Message
+@{ ViewData["Title"] = Model.Subject; }
+<div class="row justify-content-center"><div class="col-md-8">
+    <a asp-action="Inbox" class="btn btn-sm btn-outline-secondary mb-3"><i class="bi bi-arrow-left me-1"></i>Back to Inbox</a>
+    <div class="card">
+        <div class="card-header text-white" style="background:#2E4057">
+            <h5 class="mb-0"><i class="bi bi-envelope-open me-2"></i>@Model.Subject</h5>
+        </div>
+        <div class="card-body">
+            <div class="d-flex justify-content-between mb-4 pb-3 border-bottom">
+                <div>
+                    <div><strong>From:</strong> @Model.Sender?.FullName <span class="text-muted small">(@Model.Sender?.Email)</span></div>
+                    <div><strong>To:</strong> @Model.Receiver?.FullName</div>
+                </div>
+                <small class="text-muted">@Model.SentAt.ToString("dd MMM yyyy, HH:mm")</small>
+            </div>
+            <div style="white-space:pre-wrap;line-height:1.7">@Model.Body</div>
+        </div>
+        <div class="card-footer bg-transparent">
+            <a asp-action="Compose" asp-route-receiverId="@Model.SenderId" asp-route-parentMessageId="@Model.MessageId" asp-route-subject="@("Re: " + Model.Subject)" class="btn btn-acc">
+                <i class="bi bi-reply me-2"></i>Reply
+            </a>
+        </div>
+    </div>
+</div></div>

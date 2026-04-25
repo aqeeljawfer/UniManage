@@ -1,0 +1,264 @@
+@model List<Course>
+@{ ViewData["Title"] = "Browse Courses"; var enrolled = ViewBag.EnrolledIds as Dictionary<int, int> ?? new Dictionary<int, int>(); }
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0"><i class="bi bi-search me-2" style="color:#048A81"></i>Browse Courses</h2>
+</div>
+<form method="get" class="mb-4">
+    <div class="input-group" style="max-width:450px">
+        <input type="text" name="search" value="@ViewBag.Search" class="form-control" placeholder="Search courses..." />
+        <button type="submit" class="btn btn-pri"><i class="bi bi-search"></i></button>
+        @if (!string.IsNullOrEmpty(ViewBag.Search as string)) { <a asp-action="BrowseCourses" class="btn btn-outline-secondary">Clear</a> }
+    </div>
+</form>
+@if (!Model.Any()) {
+    <div class="alert alert-info"><i class="bi bi-info-circle me-2"></i>No courses found.</div>
+} else {
+    <div class="row g-4">
+        @foreach (var c in Model) {
+            var isEnrolled = enrolled.ContainsKey(c.CourseId);
+            var enrollmentId = isEnrolled ? enrolled[c.CourseId] : 0;
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 course-card shadow-sm border-0">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="fw-bold mb-0 text-dark">@c.Title</h5>
+                            <span class="badge bg-acc-subtle text-acc border border-acc">@c.Credits Credits</span>
+                        </div>
+                        <div class="course-desc-preview text-muted small mb-3">@c.Description</div>
+                        <div class="course-full-desc d-none">@c.Description</div>
+                        
+                        <div class="d-flex align-items-center gap-2 mt-auto">
+                            @if (c.Lecturer != null) {
+                                <div class="d-flex align-items-center bg-light px-2 py-1 rounded-pill">
+                                    <i class="bi bi-person-circle text-primary me-2"></i>
+                                    <span class="small text-muted fw-medium">@c.Lecturer.FullName</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white border-0 pt-0 pb-3 px-3">
+                        <hr class="mt-0 mb-3 opacity-10">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                             <span class="small @(c.IsFullyBooked ? "text-danger" : "text-success") fw-bold">
+                                <i class="bi @(c.IsFullyBooked ? "bi-exclamation-triangle" : "bi-check-all") me-1"></i>
+                                @(c.IsFullyBooked ? "Full" : c.AvailableSpaces + " spaces left")
+                            </span>
+                        </div>
+                        <button type="button" class="btn @(isEnrolled ? "btn-outline-success" : "btn-acc") w-100 view-details-btn py-2 shadow-sm" 
+                                data-id="@c.CourseId" 
+                                data-title="@c.Title" 
+                                data-credits="@c.Credits" 
+                                data-lecturer="@(c.Lecturer?.FullName ?? "N/A")"
+                                data-enrolled="@isEnrolled.ToString().ToLower()"
+                                data-enrollment-id="@enrollmentId"
+                                data-full="@c.IsFullyBooked.ToString().ToLower()"
+                                data-spaces="@c.AvailableSpaces">
+                            @if (isEnrolled) {
+                                <i class="bi bi-check-circle-fill me-2"></i><span>Enrolled</span>
+                            } else {
+                                <span>Learn More & Enroll</span>
+                            }
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<style>
+    .bg-acc-subtle { background-color: rgba(4, 138, 129, 0.1); }
+    .text-acc { color: #048A81; }
+    .border-acc { border-color: rgba(4, 138, 129, 0.2) !important; }
+    
+    .course-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border-radius: 16px;
+        overflow: hidden;
+    }
+    .course-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    }
+    
+    .course-desc-preview {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        min-height: 4.5em;
+    }
+
+    .modal-content {
+        border-radius: 24px;
+    }
+    
+    .bg-acc { background-color: #048A81 !important; }
+    .btn-acc { background-color: #048A81; color: white; border: none; transition: all 0.3s; }
+    .btn-acc:hover { background-color: #036d65; color: white; transform: scale(1.02); }
+</style>
+
+<!-- Course Details Modal -->
+<div class="modal fade" id="courseModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-0 px-4 pb-4">
+                <div class="text-center mb-4">
+                    <div class="bg-acc text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow" style="width:70px; height:70px;">
+                        <i class="bi bi-journal-text fs-1"></i>
+                    </div>
+                    <h2 class="fw-bold text-dark" id="m-title">Course Title</h2>
+                    <div class="d-flex justify-content-center gap-2">
+                        <span class="badge bg-light text-dark border px-3 py-2 rounded-pill" id="m-credits">0 credits</span>
+                        <span class="badge px-3 py-2 rounded-pill" id="m-status">Status</span>
+                    </div>
+                </div>
+
+                <div class="card bg-light border-0 rounded-4 mb-4">
+                    <div class="card-body">
+                        <label class="fw-bold small text-uppercase text-muted mb-2"><i class="bi bi-info-circle me-1"></i>Course Overview</label>
+                        <p class="text-secondary mb-0" id="m-desc" style="white-space: pre-line; line-height: 1.6;"></p>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4 text-center">
+                    <div class="col-6">
+                        <div class="p-3 border rounded-4 bg-white shadow-sm">
+                            <label class="d-block small text-muted mb-1">Lecturer</label>
+                            <span class="fw-bold text-dark" id="m-lecturer">Name</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 border rounded-4 bg-white shadow-sm">
+                            <label class="d-block small text-muted mb-1">Available Seats</label>
+                            <span class="fw-bold text-dark" id="m-spaces">0 spaces</span>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="enrollForm" asp-action="Enroll" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="courseId" id="m-courseId" />
+                    <button type="submit" class="btn btn-acc w-100 py-3 fw-bold rounded-4 shadow" id="confirmEnrollBtn">
+                        Confirm Enrollment
+                    </button>
+                </form>
+
+                <form id="withdrawForm" asp-action="Withdraw" method="post" class="mt-2 d-none">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="enrollmentId" id="m-enrollmentId" />
+                    <button type="button" class="btn btn-outline-danger w-100 py-3 fw-bold rounded-4" id="confirmWithdrawBtn">
+                        <i class="bi bi-trash me-2"></i>Withdraw from Course
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const courseModal = new bootstrap.Modal(document.getElementById('courseModal'));
+        
+        document.querySelectorAll('.view-details-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const card = this.closest('.card');
+                const id = this.dataset.id;
+                const title = this.dataset.title;
+                const desc = card.querySelector('.course-full-desc').innerText;
+                const credits = this.dataset.credits;
+                const lecturer = this.dataset.lecturer;
+                const isEnrolled = this.dataset.enrolled === 'true';
+                const enrollmentId = this.dataset.enrollmentId;
+                const isFull = this.dataset.full === 'true';
+                const spaces = this.dataset.spaces;
+
+                document.getElementById('m-courseId').value = id;
+                document.getElementById('m-enrollmentId').value = enrollmentId;
+                document.getElementById('m-title').innerText = title;
+                document.getElementById('m-desc').innerText = desc;
+                document.getElementById('m-credits').innerText = credits + ' Credits';
+                document.getElementById('m-lecturer').innerText = lecturer;
+                document.getElementById('m-spaces').innerText = isFull ? 'Full' : spaces + ' Seats';
+
+                const statusBadge = document.getElementById('m-status');
+                const enrollBtn = document.getElementById('confirmEnrollBtn');
+                
+                if (isEnrolled) {
+                    statusBadge.innerText = 'Already Enrolled';
+                    statusBadge.className = 'badge bg-success-subtle text-success border border-success px-3 py-2 rounded-pill';
+                    enrollBtn.className = 'btn btn-success w-100 py-3 rounded-4 disabled';
+                    enrollBtn.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>You are Enrolled';
+                    document.getElementById('withdrawForm').classList.remove('d-none');
+                } else if (isFull) {
+                    statusBadge.innerText = 'Course Full';
+                    statusBadge.className = 'badge bg-danger-subtle text-danger border border-danger px-3 py-2 rounded-pill';
+                    enrollBtn.className = 'btn btn-secondary w-100 py-3 rounded-4 disabled';
+                    enrollBtn.innerText = 'No Spaces Available';
+                    document.getElementById('withdrawForm').classList.add('d-none');
+                } else {
+                    statusBadge.innerText = 'Open for Enrollment';
+                    statusBadge.className = 'badge bg-primary-subtle text-primary border border-primary px-3 py-2 rounded-pill';
+                    enrollBtn.className = 'btn btn-acc w-100 py-3 fw-bold rounded-4 shadow';
+                    enrollBtn.innerText = 'Confirm Enrollment';
+                    document.getElementById('withdrawForm').classList.add('d-none');
+                }
+
+                courseModal.show();
+            });
+        });
+
+        document.getElementById('enrollForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const form = this;
+            const title = document.getElementById('m-title').innerText;
+
+            Swal.fire({
+                title: 'Confirm Enrollment',
+                text: `Ready to join "${title}"? This will add the course to your semester schedule.`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#048A81',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, Enroll Now',
+                cancelButtonText: 'Go Back',
+                customClass: {
+                    popup: 'rounded-4'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const btn = document.getElementById('confirmEnrollBtn');
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Enrolling...';
+                    form.submit();
+                }
+            });
+        });
+
+        document.getElementById('confirmWithdrawBtn').addEventListener('click', function() {
+            const form = document.getElementById('withdrawForm');
+            const title = document.getElementById('m-title').innerText;
+
+            Swal.fire({
+                title: 'Confirm Withdrawal',
+                text: `Are you sure you want to withdraw from "${title}"? This will remove it from your schedule.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, Withdraw',
+                cancelButtonText: 'Cancel',
+                customClass: {
+                    popup: 'rounded-4'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        });
+    </script>
+}

@@ -1,0 +1,49 @@
+@model GradeVM
+@{ ViewData["Title"] = "Grade Submission"; }
+<div class="row justify-content-center"><div class="col-md-6">
+<div class="card">
+    <div class="card-header fw-bold text-white" style="background:#2E4057"><i class="bi bi-pencil-square me-2"></i>Grade Submission</div>
+    <div class="card-body p-4">
+        <div class="mb-4 p-3 bg-light rounded">
+            <p class="mb-1"><strong>Student:</strong> @Model.StudentName</p>
+            <p class="mb-1"><strong>File:</strong> @Model.FileName</p>
+            <p class="mb-0"><strong>Submitted:</strong> @Model.SubmittedAt.ToString("dd MMM yyyy HH:mm")</p>
+            @if (Model.ExistingScore.HasValue) { <div class="mt-2 alert alert-success py-1 mb-0 small">Previous grade: <strong>@Model.ExistingScore/100</strong></div> }
+        </div>
+        <form asp-action="GradeSubmission" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+            <input type="hidden" asp-for="SubmissionId" />
+            <div class="mb-4">
+                <label asp-for="Score" class="form-label fw-semibold">Score (0-100)</label>
+                <input asp-for="Score" type="number" class="form-control form-control-lg" min="0" max="100" id="scoreInput" oninput="updateGrade(this.value)" />
+                <span asp-validation-for="Score" class="text-danger small"></span>
+                <div class="mt-2"><span class="badge fs-5" id="gradeBadge">-</span></div>
+            </div>
+            <div class="mb-4">
+                <label asp-for="Feedback" class="form-label fw-semibold">Feedback (optional)</label>
+                <textarea asp-for="Feedback" class="form-control" rows="4" placeholder="Write feedback here..."></textarea>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success"><i class="bi bi-check-circle me-2"></i>Save Grade</button>
+                <a asp-action="Assignments" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+</div></div>
+@section Scripts {
+<script>
+function updateGrade(v){
+    var b=document.getElementById('gradeBadge');
+    var n=parseInt(v);
+    b.className='badge fs-5';
+    if(isNaN(n)){b.textContent='-';return;}
+    if(n>=70){b.classList.add('bg-success');b.textContent='A';}
+    else if(n>=60){b.classList.add('bg-primary');b.textContent='B';}
+    else if(n>=50){b.classList.add('bg-info');b.textContent='C';}
+    else if(n>=40){b.classList.add('bg-warning','text-dark');b.textContent='D';}
+    else{b.classList.add('bg-danger');b.textContent='F';}
+}
+updateGrade(@Model.Score);
+</script>
+}

@@ -1,0 +1,30 @@
+@model Assignment
+@{ ViewData["Title"] = "Submissions"; }
+<a asp-action="Assignments" class="btn btn-sm btn-outline-secondary mb-3"><i class="bi bi-arrow-left me-1"></i>Back</a>
+<h2 class="fw-bold mb-1"><i class="bi bi-collection me-2" style="color:#048A81"></i>@Model.Title</h2>
+<p class="text-muted">@Model.Course?.Title &mdash; Deadline: @Model.Deadline.ToString("dd MMM yyyy HH:mm")</p>
+@if (!Model.Submissions.Any()) { <div class="alert alert-info">No submissions yet.</div> }
+else {
+    <div class="card">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead><tr><th>Student</th><th>File</th><th>Submitted</th><th>Score</th><th>Status</th><th>Action</th></tr></thead>
+                <tbody>
+                    @foreach (var s in Model.Submissions.OrderBy(x => x.SubmittedAt)) {
+                        <tr>
+                            <td class="fw-semibold">@s.Student?.FullName</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(s.FilePath)) { <a href="@s.FilePath" target="_blank"><i class="bi bi-file-earmark-arrow-down me-1"></i>@s.OriginalFileName</a> }
+                                else { <span class="text-muted">No file</span> }
+                            </td>
+                            <td><small>@s.SubmittedAt.ToString("dd MMM yyyy HH:mm")</small></td>
+                            <td>@if(s.Grade!=null){<strong>@s.Grade.Score/100</strong><span class="badge badge-@s.Grade.LetterGrade ms-1">@s.Grade.LetterGrade</span>}else{<span class="text-muted">—</span>}</td>
+                            <td>@if(s.Grade!=null){<span class="badge bg-success">Graded</span>}else{<span class="badge bg-warning text-dark">Pending</span>}</td>
+                            <td><a asp-action="GradeSubmission" asp-route-submissionId="@s.SubmissionId" class="btn btn-sm btn-pri">@(s.Grade!=null?"Edit Grade":"Grade")</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

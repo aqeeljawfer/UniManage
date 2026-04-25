@@ -1,0 +1,26 @@
+@model List<Message>
+@{ ViewData["Title"] = "Sent"; }
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0"><i class="bi bi-send me-2" style="color:#048A81"></i>Sent Messages</h2>
+    <div class="d-flex gap-2">
+        <a asp-action="Inbox" class="btn btn-outline-secondary"><i class="bi bi-inbox me-1"></i>Inbox</a>
+        <a asp-action="Compose" class="btn btn-acc"><i class="bi bi-pencil-square me-1"></i>Compose</a>
+    </div>
+</div>
+@if (!Model.Any()) { <div class="alert alert-info text-center py-5"><i class="bi bi-send fs-1 d-block mb-3 text-muted"></i>No sent messages.</div> }
+else {
+    <div class="card">
+        <div class="card-body p-0">
+            @foreach (var m in Model) {
+                <div class="d-flex align-items-center p-3 border-bottom">
+                    <div class="me-3"><i class="bi bi-send text-muted fs-5"></i></div>
+                    <div class="flex-grow-1">
+                        <div class="fw-semibold">To: @m.Receiver?.FullName</div>
+                        <div class="small text-muted">@m.Subject</div>
+                    </div>
+                    <small class="text-muted ms-3">@m.SentAt.ToString("dd MMM HH:mm")</small>
+                </div>
+            }
+        </div>
+    </div>
+}

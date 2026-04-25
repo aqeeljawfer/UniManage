@@ -1,0 +1,89 @@
+@model List<Assignment>
+@{ ViewData["Title"] = "My Assignments"; }
+<h2 class="fw-bold mb-4"><i class="bi bi-file-earmark-text me-2" style="color:#048A81"></i>My Assignments</h2>
+@if (!Model.Any()) {
+    <div class="alert alert-info">No assignments found for your enrolled courses.</div>
+} else {
+    @foreach (var a in Model) {
+        var sub = a.Submissions.FirstOrDefault();
+        var days = (a.Deadline - DateTime.Now).Days;
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+
+                    @* ── Left: assignment details ── *@
+                    <div>
+                        <h5 class="fw-bold mb-1">@a.Title</h5>
+                        <p class="text-muted small mb-1"><i class="bi bi-book me-1"></i>@a.Course?.Title</p>
+                        @if (!string.IsNullOrEmpty(a.Description)) { <p class="mb-1 small">@a.Description</p> }
+                        <small class="text-muted">
+                            <i class="bi bi-calendar me-1"></i>Deadline: <strong>@a.Deadline.ToString("dd MMM yyyy HH:mm")</strong>
+                            @if (!a.IsOverdue) {
+                                <span class="badge @(days<=2?"bg-danger":days<=7?"bg-warning text-dark":"bg-success") ms-2">
+                                    @(days==0?"Today":days+"d left")
+                                </span>
+                            } else {
+                                <span class="badge bg-danger ms-2">Overdue</span>
+                            }
+                        </small>
+
+                        @* ── Lecturer reference document download ── *@
+                        @if (!string.IsNullOrEmpty(a.AttachmentPath)) {
+                            <div class="mt-2">
+                                <a href="@a.AttachmentPath" target="_blank" download="@a.AttachmentFileName"
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-file-earmark-arrow-down me-1"></i>Reference: @a.AttachmentFileName
+                                </a>
+                            </div>
+                        }
+                    </div>
+
+                    @* ── Right: submission controls ── *@
+                    <div class="text-end">
+                        @* Grade / status badge *@
+                        @if (sub?.Grade != null) {
+                            <div class="badge bg-success fs-6 mb-1">Graded: @sub.Grade.Score/100 (@sub.Grade.LetterGrade)</div>
+                            @if (!string.IsNullOrEmpty(sub.Grade.Feedback)) { <p class="small text-muted mt-1">@sub.Grade.Feedback</p> }
+                        } else if (sub != null) {
+                            <span class="badge bg-info text-dark mb-1"><i class="bi bi-clock-history me-1"></i>Submitted — Awaiting Grade</span>
+                        }
+
+                        @* Student's submitted file download *@
+                        @if (sub != null && !string.IsNullOrEmpty(sub.FilePath)) {
+                            <div class="mt-1 mb-2">
+                                <a href="@sub.FilePath" target="_blank" download="@sub.OriginalFileName"
+                                   class="btn btn-outline-secondary btn-sm">
+                                    <i class="bi bi-file-earmark-arrow-down me-1"></i>@sub.OriginalFileName
+                                </a>
+                                <div class="text-muted" style="font-size:0.75rem;">
+                                    Submitted: @sub.SubmittedAt.ToString("dd MMM yyyy HH:mm")
+                                </div>
+                            </div>
+                        }
+
+                        @* Upload form — locked when overdue *@
+                        @if (a.IsOverdue) {
+                            <div class="alert alert-secondary py-1 px-2 mt-2 mb-0" style="font-size:0.8rem;">
+                                <i class="bi bi-lock me-1"></i>Deadline passed — submissions closed.
+                            </div>
+                        } else {
+                            <form asp-action="SubmitAssignment" method="post" enctype="multipart/form-data" class="mt-2">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="assignmentId" value="@a.AssignmentId" />
+                                <div class="input-group input-group-sm">
+                                    <input type="file" name="file" class="form-control form-control-sm"
+                                           accept=".pdf,.doc,.docx,.zip,.txt,.png,.jpg,.jpeg" required />
+                                    <button type="submit" class="btn btn-sm btn-pri">
+                                        <i class="bi bi-upload me-1"></i>@(sub != null ? "Re-submit" : "Submit")
+                                    </button>
+                                </div>
+                                <small class="text-muted">Max 10 MB &nbsp;&middot;&nbsp; pdf, doc, docx, zip, txt, png, jpg</small>
+                            </form>
+                        }
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    }
+}

@@ -1,0 +1,36 @@
+@{ ViewData["Title"] = "Welcome"; Layout = "_Layout"; }
+<div class="py-5 text-center rounded-3 mb-4" style="background:linear-gradient(135deg,#2E4057,#048A81);color:#fff">
+    <i class="bi bi-mortarboard-fill" style="font-size:4rem"></i>
+    <h1 class="display-4 fw-bold mt-3">Welcome to UniManage</h1>
+    <p class="lead">University Course Management System</p>
+    <a asp-controller="Account" asp-action="Login" class="btn btn-light btn-lg me-3 mt-2">
+        <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+    </a>
+    <a asp-controller="Account" asp-action="Register" class="btn btn-outline-light btn-lg mt-2">
+        <i class="bi bi-person-plus me-2"></i>Sign Up
+    </a>
+</div>
+<div class="row g-4 text-center mb-4">
+    <div class="col-md-4">
+        <div class="card h-100 p-4">
+            <i class="bi bi-person-check-fill text-success" style="font-size:2.5rem"></i>
+            <h5 class="mt-3 fw-bold">Students</h5>
+            <p class="text-muted">Browse courses, submit assignments and view your grades.</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 p-4">
+            <i class="bi bi-easel-fill text-primary" style="font-size:2.5rem"></i>
+            <h5 class="mt-3 fw-bold">Lecturers</h5>
+            <p class="text-muted">Create assignments, grade submissions and message students.</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 p-4">
+            <i class="bi bi-shield-check-fill text-warning" style="font-size:2.5rem"></i>
+            <h5 class="mt-3 fw-bold">Administrators</h5>
+            <p class="text-muted">Manage courses, users and generate system reports.</p>
+        </div>
+    </div>
+</div>
+
